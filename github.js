@@ -432,10 +432,14 @@ GithubLocation.prototype = {
 
     var self = this;
 
-    if (packageConfig.dependencies && !packageConfig.registry && (!packageConfig.jspm || !packageConfig.jspm.dependencies)) {
+    if ((packageConfig.peerDependencies || packageConfig.dependencies) && !packageConfig.registry && (!packageConfig.jspm || !packageConfig.jspm.dependencies)) {
       var hasDependencies = false;
-      for (var p in packageConfig.dependencies)
+
+      if (Object.keys(packageConfig.dependencies || {}).length > 0) {
         hasDependencies = true;
+      } else if (Object.keys(packageConfig.peerDependencies || {}).length > 0) {
+        hasDependencies = true;
+      }
 
       if (packageName && hasDependencies) {
         var looksLikeNpm = packageConfig.name && packageConfig.version && (packageConfig.description || packageConfig.repository || packageConfig.author || packageConfig.license || packageConfig.scripts);
@@ -455,11 +459,13 @@ GithubLocation.prototype = {
 
         if (noDepsMsg) {
           delete packageConfig.dependencies;
+          delete packageConfig.peerDependencies;
           this.ui.log('warn', '`' + packageName + '` dependency installs skipped as it\'s a GitHub package with no registry property set.\n' + noDepsMsg + '\n');
         }
       }
       else {
         delete packageConfig.dependencies;
+        delete packageConfig.peerDependencies;
       }
     }
 
